@@ -3,12 +3,10 @@ runner.env
 **/.cache
 **/.config
 .server
-
 rosm.cache
 .RData
 *.Rproj
 lib/
-
 # R temporary files
 .Rproj.user
 .Rhistory
@@ -16,7 +14,7 @@ lib/
 .RDataTmp*
 .Ruserdata
 ._.Rhistory
-
 # mac system files
 **/._*
 **/.DS_Store
+.DS_Store
