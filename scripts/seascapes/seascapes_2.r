@@ -1,14 +1,14 @@
 # Script to pull Seascape data for given polygon and plot a time series
 # based on:
-# - @JoryGriffith [bon-in-a-box-pipelines: ExampleWorkflow.R](https://github.com/GEO-BON/bon-in-a-box-pipelines/blob/59489f41e47cf09ae670ac65dcf7e19a66c9e5ad/scripts/ExampleWorkflow.R)
-# - @bbest [seascapes-app: get_data.R](https://github.com/noaa-onms/seascapes-app/blob/c33518495d1f7d2a4fbb937cfb417ad4842cc5d1/get_data.R)
+# - [seascapes-app: get_data.R](https://github.com/noaa-onms/seascapes-app/blob/c33518495d1f7d2a4fbb937cfb417ad4842cc5d1/get_data.R)
+
+###################################
+# PRACTICE SCRIPT
 
 if (!require(librarian)){
   install.packages("librarian")
   library(librarian)
 }
-devtools::load_all("~/Github/marinebon/seascapeR")
-devtools::load_all("~/Github/marinebon/extractr")
 librarian::shelf(  # load libraries, installing first if needed
   dplyr,
   fs,
@@ -19,63 +19,33 @@ librarian::shelf(  # load libraries, installing first if needed
   sf,
   quiet = T)
 
-# mrp_view("eez")
-
-country <- "Belgium"
-# country <- "United States"
-type_nation <- gaz_rest_types() |> filter(type=="Nation") |> pull(typeID)  # 13
-gid_country <- gaz_search(country, typeid = type_nation) |>
-  pull(MRGID)  # Belgium: 14; United States: 2204
-gid_eez <- gaz_relations(gid_country) |>
-  filter(placeType == "EEZ") |>
-  pull(MRGID)  # Belgium: 3293; United States: 8456
-ply <- gaz_search(gid_eez) |>
-  gaz_geometry()
-# mapview::mapView(ply)
-# ply |> st_drop_geometry() |> View()
-
-
-ss_dataset <- "global_monthly"  # TODO: "global_8day"
-ss_var     <- "CLASS"           # TODO: "P"
-
-ss_info  <- get_ss_info(dataset = ss_dataset)
-# ss_dates <- paste0(get_ss_dates(ss_info) |> as.character(), "T12:00:00Z")
-
-ss_url  <- "https://cwcgom.aoml.noaa.gov/erddap/griddap/noaa_aoml_4729_9ee6_ab54.html"
-ss_info <- ed_info(ss_url)
-ss_var  <- "CLASS"           # TODO: "P"
-
-# dims <- ed_dims(ss_info)
-ss_times <- ed_dim(ss_info, "time")
+ss_datasets <- c("global_monthly")  # TODO: "global_8day"
+ss_vars     <- c("CLASS")           # TODO: "P"
+ss_info     <- get_ss_info(dataset = ss_datasets[1])
 
 # Reading inputs
-input  <- biab_inputs()
-r_tif  <- here(glue("userdata/seascapes/{country}.tif"))
-z_csv  <- here(glue("userdata/seascapes/{country}.csv"))
-dir_nc <- here(glue("userdata/seascapes/{country}_nc"))
+input <- biab_inputs()
 
-# dir.create(dir_tif, showWarnings = F)
+d_eez <- gaz_search_by_type("EEZ")
+ply <-
 
-ed_success <- ed_extract(
-  ed        = ss_info,
-  var       = ss_var,
-  sf_zones  = ply,
-  fld_zones = "preferredGazetteerName",
-  rast_tif  = r_tif,
-  zonal_csv = z_csv,
-  time_min  = min(ss_times),
-  time_max  = max(ss_times),
-  dir_nc    = dir_nc)
 
-all(length(dims[dims_other])
 
-ss_grids <- get_ss_grds(
-  ss_info,
-  ply,
-  ss_var,
-  # date_beg=ss_dates[1],
-  # date_end=ss_dates[2],
-  dir_tif = dir_tif) # grd_{ss_var}_{date}.tif
+# Get info for seascape data
+ss_info <- get_ss_info("global_monthly") # or global_8day (user can choose)
+
+# Choose variable (want habitat class)
+ss_var <- "CLASS"
+
+# You can make a polygon using a bounding box
+custom_ply <- bbox_ply(-127, 5, -122, 8) # user can choose
+
+# potentially include option to upload your own polygon
+#custom_ply <- st_read("some_polygon.shp")
+
+# Get seascape data for the polygon selected
+ss_grids <- get_ss_grds(ss_info, custom_ply, ss_var, date_beg=max(get_ss_dates(ss_info)),
+                        date_end=max(get_ss_dates(ss_info)))
 
 plot(ss_grids)
 
@@ -148,3 +118,4 @@ ggplot(dat_summary_merged) +
   theme(axis.title.y=element_blank(), legend.position="none")
 
 dat_summary_merged$percentage_species
+

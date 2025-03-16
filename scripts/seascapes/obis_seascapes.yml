@@ -1,0 +1,22 @@
+script: obis_seascapes.R
+name: OBIS Seascapes
+description: Script to pull observations from OBIS (Ocean Biodiversity Information System) and seascape data and plot some metrics with seascape data
+author:
+  - name: Jory Griffith (jory.griffith@mcgill.ca)
+  - name: Ben Best (ben@ecoquants.com)
+external_link: https://github.com/GEO-BON/bon-in-a-box-pipelines/blob/59489f41e47cf09ae670ac65dcf7e19a66c9e5ad/scripts/ExampleWorkflow.R
+inputs:
+  species:
+    label: Species
+    description: a list of species
+    type: text[]
+    example: [Acer saccharum, Bubo scandiacus]
+
+  - name: obis_seascapes
+    description: OBIS Seascapes data
+    type: file
+    required: true
+  - name: obis
+    description: OBIS data
+    type: file
+    required: true
